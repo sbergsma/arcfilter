@@ -1,0 +1,4 @@
+filterCommon.o: filterCommon.cpp filterCommon.h
+linearFilter.o: linearFilter.cpp filterCommon.h
+quadFilter.o: quadFilter.cpp filterCommon.h
+ruleFilter.o: ruleFilter.cpp filterCommon.h
