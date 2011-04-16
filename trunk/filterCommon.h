@@ -10,6 +10,9 @@
 #ifndef FILTERCOMMON_H
 #define FILTERCOMMON_H
 
+#include <stdio.h>  // For sprintf
+#include <stdlib.h> // For all the exit()'s called by the mains
+
 #include <tr1/unordered_map>   // For storing the weights
 #include <tr1/unordered_set>   // For storing the taboo lists
 #include <string>
@@ -20,13 +23,20 @@ const int MAXSENTSIZE = 999;  // For the efficient bitvector, and for int2str
 
 typedef std::tr1::unordered_set<std::string> RuleLists;
 typedef std::vector<std::string> StrVec;
+
+// For the output of the rules:
 typedef std::bitset<MAXSENTSIZE> FilterVals;
+// For the scores of the other filters:
+typedef std::vector<float> FilterScores;
 
 typedef std::vector<bool> eightB;
+typedef std::vector<float> eightF;
 
-typedef std::vector<float> eightW;
-typedef std::tr1::unordered_map<std::string,eightW> LinearWeightsMap;
+// For the two pair filters:
+typedef std::vector<float> twoW;
 
+typedef std::tr1::unordered_map<std::string,eightF> LinearWeightsMap;
+typedef std::tr1::unordered_map<std::string,twoW> UltraPairWeightsMap;
 typedef std::tr1::unordered_map<std::string,float> QuadWeightMap;
 typedef std::vector< std::pair<std::string,float> > RealFeats;
 
@@ -35,8 +45,9 @@ void initializeTaboos(RuleLists& tabooHeads, RuleLists& noLeftHead, RuleLists& n
 
 // Quickly turn an integer into a string: For efficiency: Use fact we
 // never have a distance or index > 999
+// Whoops : you need another byte for the '\0' guy that terminates strings!
 inline std::string fastInt2Str(int d) {
-  static char buf[3];
+  static char buf[4];
   sprintf(buf, "%d", d);
   return buf;
 }
@@ -94,11 +105,17 @@ void buildQuadraticFeatureVector(int h, int m, const StrVec &words, const StrVec
 // Get the 0/1 predictions for each filter
 void getLinearFilterPredictions(const LinearWeightsMap &linWeights, const StrVec &feats, eightB &preds);
 
+// Get the floating-point scores for each of the nine ultra filters:
+void getUltraLinearFilterScores(const LinearWeightsMap &linWeights, const StrVec &feats, eightF &preds);
+
 // Get the 0/1 prediction for the quadratic
 bool getQuadraticFilterPredictions(const QuadWeightMap &quadWeights, const StrVec &binFeats, const RealFeats &realFeats);
 
 // Load the weight matrix from file:
 void initializeLinearWeights(char *filename, LinearWeightsMap &linWeights);
+
+// Load the ultra 2-D pair weight matrix from file:
+void initializeUltraPairWeights(char *filename, UltraPairWeightsMap &pairWeights);
 
 // Load the weight vector from file:
 void initializeQuadWeights(char *filename, QuadWeightMap &quadWeights);

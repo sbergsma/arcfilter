@@ -55,7 +55,6 @@ void initializeTaboos(RuleLists& tabooHeads, RuleLists& noLeftHead, RuleLists& n
   tabooPairs.insert("mIN<hDT"); tabooPairs.insert("mNN<hDT"); tabooPairs.insert("mNNP<hIN");
 }
 
-
 // Build a feature vector given the current words and tags:
 void buildLinearFeatureVector(int pos, const StrVec &words, const StrVec &tags, int sentSize, StrVec &feats) {
   // Get all the relevant information:
@@ -146,7 +145,7 @@ void buildLinearFeatureVector(int pos, const StrVec &words, const StrVec &tags, 
   // Little conjunctions on sentence size, position:
   featstr = "P" + fastInt2Str(pos); atomicFeats.push_back(featstr);
   featstr = "P" + fastInt2Str(pos) + "^S" + fastInt2Str(sentSize); atomicFeats.push_back(featstr);
-  
+
   // From the end:
   int reverseDist = sentSize - pos;
   std::string reverseHeadPos = binDistance(reverseDist);
@@ -279,6 +278,26 @@ void getLinearFilterPredictions(const LinearWeightsMap &linWeights, const StrVec
 	preds.push_back(scores[i] > 0.000001);
   }
 }
+  
+// Get the floating-point scores for each of the nine ultra filters:
+void getUltraLinearFilterScores(const LinearWeightsMap &linWeights, const StrVec &feats, eightF &preds) {
+  // Build the eight scores for each filter type:
+  float scores[8] = {0,0,0,0,0,0,0,0};  
+  for (StrVec::const_iterator itr=feats.begin(); itr != feats.end(); itr++) {
+    // Get the weights for each feature:
+    LinearWeightsMap::const_iterator finder = linWeights.find(*itr);
+    // If there are weights for this feature:
+    if (finder != linWeights.end()) {
+      for (int i=0; i<8; i++) {
+		scores[i] += finder->second[i];
+      }
+    }
+  }
+  // And output the scores as values:
+  for (int i=0; i<8; i++) {
+    preds.push_back(scores[i]);
+  }
+}
 
 // Get the 0/1 prediction for the quadratic
 bool getQuadraticFilterPredictions(const QuadWeightMap &quadWeights, const StrVec &binFeats, const RealFeats &realFeats) {
@@ -312,20 +331,50 @@ void initializeLinearWeights(char *filename, LinearWeightsMap &linWeights) {
   std::ifstream file(filename);
   if (!file) {
     std::cerr << "Error! Weight file " << filename << " can not be opened" << std::endl;
-    std::exit(-1);
+    exit(-1);
   }
 
   // parse each input line:
   std::string feat;
   while (file >> feat) {
     // Read in the eight weights for this feature
-	eightW wtset;
+	eightF wtset;
     float wt;
     for (int i=0; i<8; i++) {
       file >> wt; wtset.push_back(wt);
     }
     // Add to the weight matrix:
     linWeights[feat] = wtset;
+  }
+  
+  // close the file
+  file.close();
+  std::cerr << "> done" << std::endl;
+}
+
+// Load the ultra 2-d pair matrix from file:
+void initializeUltraPairWeights(char *filename, UltraPairWeightsMap &pairWeights) {
+  std::cerr << "Loading ultra-pair weights ";
+  // We pass zero for blank weight files, so load nothing:
+  if (filename[0] == '0') return;
+
+  // open the file:
+  std::ifstream file(filename);
+  if (!file) {
+    std::cerr << "Error! Weight file " << filename << " can not be opened" << std::endl;
+    exit(-1);
+  }
+
+  // parse each input line:
+  std::string feat;
+  while (file >> feat) {
+    // Read in the two weights for this feature
+    twoW wtset;
+    float wt;
+    file >> wt; wtset.push_back(wt);
+    file >> wt; wtset.push_back(wt);
+    // Add to the weight matrix:
+    pairWeights[feat] = wtset;
   }
   
   // close the file
@@ -343,7 +392,7 @@ void initializeQuadWeights(char *filename, QuadWeightMap &quadWeights) {
   std::ifstream file(filename);
   if (!file) {
     std::cerr << "Error! Weight file " << filename << " can not be opened" << std::endl;
-    std::exit(-1);
+    exit(-1);
   }
 
   // parse each input line:

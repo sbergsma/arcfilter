@@ -1,10 +1,10 @@
 .SUFFIXES: .c .cpp
 
 CC=g++
-GO = -O2
+GO = -O3
 
 CFLAGS = $(GO) -Wall
-EXECS = ruleFilter linearFilter quadFilter
+EXECS = ruleFilter linearFilter ultraFilter quadFilter
 
 %.o:	%.cpp
 	$(CC) -c -o $@ $(CFLAGS) $<
@@ -19,6 +19,9 @@ ruleFilter:	ruleFilter.o filterCommon.o
 
 linearFilter:	linearFilter.o filterCommon.o
 	$(CC) -o $@ $(CFLAGS) linearFilter.o filterCommon.o
+
+ultraFilter:	ultraFilter.o filterCommon.o
+	$(CC) -o $@ $(CFLAGS) ultraFilter.o filterCommon.o
 
 quadFilter:	quadFilter.o filterCommon.o
 	$(CC) -o $@ $(CFLAGS) quadFilter.o filterCommon.o
