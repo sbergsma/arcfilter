@@ -7,9 +7,12 @@
  *
  ******************************************/
 
+#include <time.h>     // For timing:
+#include <math.h>     // For floor and log
+
 #include <iostream>   // For reading/writing STDIN
 #include <sstream>    // For parsing the input
-#include <time.h>     // For timing:
+
 
 #include "filterCommon.h"
 
@@ -81,8 +84,8 @@ void applyFilters(const RuleLists& tabooHeads, const RuleLists& noLeftHead, cons
       bool isARoot = false;
 	  bool doFilter = false;
       for (std::vector<int>::iterator rItr = rootIndices.begin(); rItr != rootIndices.end(); rItr++) {
-		if (head < *rItr && *rItr < mod ||
-			mod < *rItr && *rItr < head)
+	if ((head < *rItr && *rItr < mod) ||
+	    (mod < *rItr && *rItr < head))
 		  doFilter = true;
 		if (*rItr == mod) isARoot = true;		// Also, check if this mod is on the list of roots:
       }
@@ -109,11 +112,9 @@ void applyFilters(const RuleLists& tabooHeads, const RuleLists& noLeftHead, cons
 	  if (qpred)
 		headList.push_back(head); 	// If we don't filter anything, put this on as an option
     }
-    if (headList.empty() == 0) {    // Now, for each mod, add on its possible heads:
-      if (possiblePairs != "") possiblePairs += "\t";
-      possiblePairs += fastInt2Str(mod) + ":" + fastInt2Str(headList[0]);
-      for (int i=1; i<(int)(headList.size()); i++) possiblePairs += "," + fastInt2Str(headList[i]); // int to avoid warns
-    }
+	if (mod > 1) possiblePairs += "\t";
+	if (!headList.empty()) possiblePairs += fastInt2Str(headList[0]);
+	for (int i=1; i<(int)(headList.size()); i++) possiblePairs += "," + fastInt2Str(headList[i]); // int to avoid warns
   }
   std::cout << possiblePairs << std::endl;
 }
